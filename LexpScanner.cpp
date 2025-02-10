@@ -1,3 +1,10 @@
+/*
+Name: Hoang Mai Han Dang, Yazi Zhang
+Phase 1.1: Scanner for Lexp
+Description: This program implements a lexical scanner for Lexp,
+            identifying identifiers, numbers, and symbols.
+*/
+
 #include <iostream>
 #include <regex>
 #include <vector>
