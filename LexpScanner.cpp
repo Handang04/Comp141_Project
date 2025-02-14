@@ -18,11 +18,15 @@ const regex NUMBER_REGEX("^[0-9]+");
 const regex SYMBOL_REGEX("^[+\\-*/()]");
 const regex WHITESPACE_REGEX(R"(\s)");
 
-vector<string> scanLine(const string& line)
+struct Token {
+    string type;
+    string value;
+};
+
+vector<Token> scanLine(const string& line)
 {
-    vector<string> result;
+    vector<Token> tokens;
     size_t index = 0;
-    string token;
 
     while (index < line.length())
     {
@@ -39,27 +43,27 @@ vector<string> scanLine(const string& line)
         else if (regex_search(remaining, match, IDENTIFIER_REGEX))
         {
             token = match.str();
-            result.push_back(token + ": IDENTIFIER");
+            tokens.push_back({"IDENTIFIER", token});
         }
         else if (regex_search(remaining, match, NUMBER_REGEX))
         {
             token = match.str();
-            result.push_back(token + ": NUMBER");
+            tokens.push_back({"NUMBER", token});
         }
         else if (regex_search(remaining, match, SYMBOL_REGEX))
         {
             token = match.str();
-            result.push_back(token + ": SYMBOL");
+            tokens.push_back({"SYMBOL", token})
         }
         else
         {
-            result.push_back("ERROR READING: \"" + string(1, currChar) + "\"");
+            tokens.push_back({"ERROR READING", string(1, currChar)});
         }
         /*
         when nothing matches, the length of match is 0
         ensure index always move forward
         */
-       index += match.length() > 0 ? match.length() : 1;
+        index += match.length() > 0 ? match.length() : 1;
     }
 
     return result;
@@ -93,11 +97,18 @@ int main(int argc, char *argv[])
     while (getline(inputFile, line))
     {
         outputFile << "Line: " << line << endl;
-        vector<string> tokens = scanLine(line);
+        vector<Token> tokens = scanLine(line);
 
-        for (const string &token : tokens)
+        for (const Token &token : tokens)
         {
-            outputFile << token << endl;
+            if (token.type == "ERROR READING")
+            {
+                outputFile << "ERROR READING: \"" + token.value + "\"" <<  << endl;
+            }
+            else
+            {
+                outputFile << token.value << ": " << token.type << endl;
+            }
         }
 
         outputFile << endl;
