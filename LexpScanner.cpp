@@ -16,47 +16,50 @@ using namespace std;
 const regex IDENTIFIER_REGEX("^[a-zA-Z][a-zA-Z0-9]*");
 const regex NUMBER_REGEX("^[0-9]+");
 const regex SYMBOL_REGEX("^[+\\-*/()]");
+const regex WHITESPACE_REGEX(R"(\s)");
 
 vector<string> scanLine(const string& line)
 {
     vector<string> result;
     size_t index = 0;
+    string token;
 
     while (index < line.length())
     {
         char currChar = line[index];
-        if (isspace(currChar))
-        {
-            index++;
-            continue;
-        }
-
         string remaining = line.substr(index);
+        string token;
         smatch match;
 
-        if (regex_search(remaining, match, IDENTIFIER_REGEX))
+        if (regex_search(remaining, match, WHITESPACE_REGEX) && match.position() == 0)
         {
-            string token = match.str();
+            index += match.length();
+            continue;
+        }
+        else if (regex_search(remaining, match, IDENTIFIER_REGEX))
+        {
+            token = match.str();
             result.push_back(token + ": IDENTIFIER");
-            index += token.length();
         }
         else if (regex_search(remaining, match, NUMBER_REGEX))
         {
-            string token = match.str();
+            token = match.str();
             result.push_back(token + ": NUMBER");
-            index += token.length();
         }
         else if (regex_search(remaining, match, SYMBOL_REGEX))
         {
-            string token = match.str();
+            token = match.str();
             result.push_back(token + ": SYMBOL");
-            index += token.length();
         }
         else
         {
             result.push_back("ERROR READING: \"" + string(1, currChar) + "\"");
-            index++;
         }
+        /*
+        when nothing matches, the length of match is 0
+        ensure index always move forward
+        */
+       index += match.length() > 0 ? match.length() : 1;
     }
 
     return result;
