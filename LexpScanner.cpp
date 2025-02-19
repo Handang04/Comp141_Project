@@ -71,6 +71,7 @@ vector<Token> scanLine(const string& line)
         {
             tokenLength = 1;
             tokens.push_back({"ERROR READING", string(1, currChar)});
+            break;
         }
         /*
         when nothing matches, the length of match is 0
