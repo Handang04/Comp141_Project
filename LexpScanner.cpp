@@ -10,18 +10,25 @@ Description: This program implements a lexical scanner for Lexp,
 #include <vector>
 #include <string>
 #include <fstream>
+#include <cctype>
+#include <algorithm>
 
 using namespace std;
 
 const regex IDENTIFIER_REGEX("^[a-zA-Z][a-zA-Z0-9]*");
 const regex NUMBER_REGEX("^[0-9]+");
 const regex SYMBOL_REGEX("^[+\\-*/()]");
-const regex WHITESPACE_REGEX(R"(\s)");
+const regex WHITESPACE_REGEX(R"(\s+)");
 
 struct Token {
     string type;
     string value;
 };
+
+bool isOnlyWhiteSpace(const string& line)
+{
+    return all_of(line.begin(), line.end(), [](char c) { return isspace(c); });
+}
 
 vector<Token> scanLine(const string& line)
 {
@@ -34,39 +41,45 @@ vector<Token> scanLine(const string& line)
         string remaining = line.substr(index);
         string token;
         smatch match;
+        size_t tokenLength = 0;
 
         if (regex_search(remaining, match, WHITESPACE_REGEX) && match.position() == 0)
         {
+            tokenLength = match.length();
             index += match.length();
             continue;
         }
         else if (regex_search(remaining, match, IDENTIFIER_REGEX))
         {
+            tokenLength = match.length();
             token = match.str();
             tokens.push_back({"IDENTIFIER", token});
         }
         else if (regex_search(remaining, match, NUMBER_REGEX))
         {
+            tokenLength = match.length();
             token = match.str();
             tokens.push_back({"NUMBER", token});
         }
         else if (regex_search(remaining, match, SYMBOL_REGEX))
         {
+            tokenLength = match.length();
             token = match.str();
-            tokens.push_back({"SYMBOL", token})
+            tokens.push_back({"SYMBOL", token});
         }
         else
         {
+            tokenLength = 1;
             tokens.push_back({"ERROR READING", string(1, currChar)});
         }
         /*
         when nothing matches, the length of match is 0
         ensure index always move forward
         */
-        index += match.length() > 0 ? match.length() : 1;
+        index += tokenLength;
     }
 
-    return result;
+    return tokens;
 }
 
 int main(int argc, char *argv[])
@@ -96,6 +109,11 @@ int main(int argc, char *argv[])
 
     while (getline(inputFile, line))
     {
+        if (isOnlyWhiteSpace(line))
+        {
+            continue;
+        }
+
         outputFile << "Line: " << line << endl;
         vector<Token> tokens = scanLine(line);
 
@@ -103,7 +121,7 @@ int main(int argc, char *argv[])
         {
             if (token.type == "ERROR READING")
             {
-                outputFile << "ERROR READING: \"" + token.value + "\"" <<  << endl;
+                outputFile << "ERROR READING: \"" + token.value + "\""  << endl;
             }
             else
             {
