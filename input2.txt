@@ -1,4 +1,3 @@
-catfood:=9
 x32 := 36 - y;
 if y then
     x32 :=0; skip
@@ -7,9 +6,4 @@ else
     z:= x32
 endif
 
-34 + 89 - x * y23
-cxo6y / 67z23 * 56& 34 * x
-2 + x
-catfood-45.... m
-
-thenx
+thenx then x

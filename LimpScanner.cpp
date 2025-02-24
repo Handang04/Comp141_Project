@@ -61,6 +61,7 @@ vector<Token> scanLine(const string& line)
         {
             string error(1, line[index]);
             tokens.push_back({"ERROR READING", error});
+            break;
         }
         /*
         when nothing matches, the length of match is 0
@@ -103,7 +104,7 @@ int main(int argc, char *argv[])
         {
             continue;
         }
-        
+
         outputFile << "Line: " << line << endl;
         vector<Token> tokens = scanLine(line);
 
