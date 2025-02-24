@@ -1,3 +1,10 @@
+/*
+Name: Hoang Mai Han Dang, Yazi Zhang
+Phase 1.2: Scanner for Limp
+Description: This program implements a lexical scanner for Limp,
+             identifying keywords, identifiers, numbers, and symbols.
+*/
+
 #include <iostream>
 #include <regex>
 #include <string>
