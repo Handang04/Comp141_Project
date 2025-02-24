@@ -7,9 +7,11 @@ Description: This program implements a lexical scanner for Limp,
 
 #include <iostream>
 #include <regex>
+#include <vector>
 #include <string>
 #include <fstream>
-#include <vector>
+#include <cctype>
+#include <algorithm>
 
 using namespace std;
  
