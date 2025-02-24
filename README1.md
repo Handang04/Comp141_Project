@@ -1,4 +1,4 @@
-Lexp Scanner - Phase 1
+Lexp Scanner - Phase 1.1
 =======================
 Author: Hoang Mai Han Dang, Yazi Zhang
 
