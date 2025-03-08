@@ -12,6 +12,8 @@ Description: This program implements a lexical scanner for Lexp,
 #include <fstream>
 #include <cctype>
 #include <algorithm>
+#include <memory>
+#include <utility>
 
 using namespace std;
 
@@ -23,6 +25,15 @@ const regex WHITESPACE_REGEX(R"(\s+)");
 struct Token {
     string type;
     string value;
+};
+
+struct ASTnode {
+    string value;
+    shared_ptr<ASTnode> left;
+    shared_ptr<ASTnode> right;
+
+    ASTnode(string val, shared_ptr<ASTnode> l = nullptr, shared_ptr<ASTnode> r = nullptr)
+        : value(val), left(l), right(r) {}
 };
 
 bool isOnlyWhiteSpace(const string& line)
@@ -83,6 +94,105 @@ vector<Token> scanLine(const string& line)
     return tokens;
 }
 
+class TokenStream {
+    public:
+        vector<Token> tokens;
+        size_t index = 0;
+
+        TokenStream(vector<Token> token) : tokens(std::move(token)) {}
+        // move(token) transfer token's contents to tokens without copying
+        // it allows resources to be moved instead of copied
+        // after the move, token is left in a valid but unspecified state
+
+        Token peek() {
+            if (index < tokens.size()) {
+                return tokens[index]; // return the current token
+            }
+            else {
+                return Token{"End of File", ""};
+            }
+        }
+
+        Token get() {
+            if (index < tokens.size()) {
+                return tokens[index++]; // return the current token then increase the index by 1
+            }
+            else {
+                return Token{"End of File", ""};
+            }
+        }
+};
+
+/*
+Grammar for Lexp:
+expression ::= term { + term }
+term ::= factor { - factor }
+factor ::= piece { / piece }
+piece ::= element { * element }
+element ::= ( expression ) | NUMBER | IDENTIFIER
+*/
+
+shared_ptr<ASTnode> parseExpression(TokenStream& tokens);
+shared_ptr<ASTnode> parseTerm(TokenStream& tokens);
+shared_ptr<ASTnode> parseFactor(TokenStream& tokens);
+shared_ptr<ASTnode> parsePiece(TokenStream& tokens);
+shared_ptr<ASTnode> parseElement(TokenStream& tokens);
+
+shared_ptr<ASTnode> parseExpression(TokenStream& tokens) {
+    auto node = parseTerm(tokens);
+    while (tokens.peek().value == "+") {
+        tokens.get();
+        node = make_shared<ASTnode>("+", node, parseTerm(tokens));
+    }
+    return node;
+}
+
+shared_ptr<ASTnode> parseTerm(TokenStream& tokens) {
+    auto node = parseFactor(tokens);
+    while (tokens.peek().value == "-") {
+        tokens.get();
+        node = make_shared<ASTnode>("-", node, parseFactor(tokens));
+    }
+    return node;
+}
+
+shared_ptr<ASTnode> parseFactor(TokenStream& tokens) {
+    auto node = parsePiece(tokens);
+    while (tokens.peek().value == "/") {
+        tokens.get();
+        node = make_shared<ASTnode>("/", node, parsePiece(tokens));
+    }
+    return node;
+}
+shared_ptr<ASTnode> parsePiece(TokenStream& tokens) {
+    auto node = parseElement(tokens);
+    while (tokens.peek().value == "*") {
+        tokens.get();
+        node = make_shared<ASTnode>("*", node, parseElement(tokens));
+    }
+    return node;
+}
+shared_ptr<ASTnode> parseElement(TokenStream& tokens) {
+    Token token = tokens.get();
+    if (token.type == "NUMBER" || token.type == "IDENTIFIER") {
+        return make_shared<ASTnode> (token.value);
+    } else if (token.value == "(") {
+        auto node = parseExpression(tokens);
+        tokens.get();
+        return node;
+    }
+
+    return nullptr;
+}
+
+void printAST(const shared_ptr<ASTnode>& node, ofstream& outputFile, int depth = 0) {
+    if (!node) return;
+    outputFile << string (depth * 2, ' ') << node -> value << " : SYMBOL" << endl;
+    printAST(node->left, outputFile, depth + 1);
+    printAST(node->right, outputFile, depth + 1);
+}
+
+
 int main(int argc, char *argv[])
 {
     if (argc < 3)
@@ -131,6 +241,11 @@ int main(int argc, char *argv[])
         }
 
         outputFile << endl;
+
+        TokenStream ts(tokens);
+        shared_ptr<ASTnode> root = parseExpression(ts);
+        outputFile << "AST:" << endl;
+        printAST(root, outputFile);
     }
 
     inputFile.close();
