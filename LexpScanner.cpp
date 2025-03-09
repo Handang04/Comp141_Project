@@ -29,11 +29,12 @@ struct Token {
 
 struct ASTnode {
     string value;
+    string type;
     shared_ptr<ASTnode> left;
     shared_ptr<ASTnode> right;
 
-    ASTnode(string val, shared_ptr<ASTnode> l = nullptr, shared_ptr<ASTnode> r = nullptr)
-        : value(val), left(l), right(r) {}
+    ASTnode(string val, string t, shared_ptr<ASTnode> l = nullptr, shared_ptr<ASTnode> r = nullptr)
+        : value(val), type(t) ,left(l), right(r) {}
 };
 
 bool isOnlyWhiteSpace(const string& line)
@@ -138,11 +139,12 @@ shared_ptr<ASTnode> parseFactor(TokenStream& tokens);
 shared_ptr<ASTnode> parsePiece(TokenStream& tokens);
 shared_ptr<ASTnode> parseElement(TokenStream& tokens);
 
+// FIX: MAKE A BETTER VALUE AND TYPE FOR AST NODE
 shared_ptr<ASTnode> parseExpression(TokenStream& tokens) {
     auto node = parseTerm(tokens);
     while (tokens.peek().value == "+") {
         tokens.get();
-        node = make_shared<ASTnode>("+", node, parseTerm(tokens));
+        node = make_shared<ASTnode>("+", "SYMBOL", node, parseTerm(tokens));
     }
     return node;
 }
@@ -151,7 +153,7 @@ shared_ptr<ASTnode> parseTerm(TokenStream& tokens) {
     auto node = parseFactor(tokens);
     while (tokens.peek().value == "-") {
         tokens.get();
-        node = make_shared<ASTnode>("-", node, parseFactor(tokens));
+        node = make_shared<ASTnode>("-",  "SYMBOL", node, parseFactor(tokens));
     }
     return node;
 }
@@ -160,7 +162,7 @@ shared_ptr<ASTnode> parseFactor(TokenStream& tokens) {
     auto node = parsePiece(tokens);
     while (tokens.peek().value == "/") {
         tokens.get();
-        node = make_shared<ASTnode>("/", node, parsePiece(tokens));
+        node = make_shared<ASTnode>("/",  "SYMBOL", node, parsePiece(tokens));
     }
     return node;
 }
@@ -168,14 +170,14 @@ shared_ptr<ASTnode> parsePiece(TokenStream& tokens) {
     auto node = parseElement(tokens);
     while (tokens.peek().value == "*") {
         tokens.get();
-        node = make_shared<ASTnode>("*", node, parseElement(tokens));
+        node = make_shared<ASTnode>("*",  "SYMBOL", node, parseElement(tokens));
     }
     return node;
 }
 shared_ptr<ASTnode> parseElement(TokenStream& tokens) {
     Token token = tokens.get();
     if (token.type == "NUMBER" || token.type == "IDENTIFIER") {
-        return make_shared<ASTnode> (token.value);
+        return make_shared<ASTnode> (token.value, token.type);
     } else if (token.value == "(") {
         auto node = parseExpression(tokens);
         tokens.get();
@@ -187,7 +189,7 @@ shared_ptr<ASTnode> parseElement(TokenStream& tokens) {
 
 void printAST(const shared_ptr<ASTnode>& node, ofstream& outputFile, int depth = 0) {
     if (!node) return;
-    outputFile << string (depth * 2, ' ') << node -> value << " : SYMBOL" << endl;
+    outputFile << string (depth * 2, ' ') << node -> value << " : " << node -> type << endl;
     printAST(node->left, outputFile, depth + 1);
     printAST(node->right, outputFile, depth + 1);
 }
