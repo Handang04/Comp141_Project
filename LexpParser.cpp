@@ -1,8 +1,10 @@
 /*
 Name: Hoang Mai Han Dang, Yazi Zhang
 Phase 2.1: Parser for Lexp
-Description: This program implements a lexical scanner for Lexp,
-            identifying identifiers, numbers, and symbols.
+Description: This program implements a parser module for Lexp.
+            A parser processes the stream
+            tokens produced by the scanner according to the language grammar.
+            The result will be an abstract syntax tree (AST) representing the parsed code.
 */
 
 #include <iostream>
