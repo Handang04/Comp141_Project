@@ -1,4 +1,4 @@
-Lexp Scanner - Phase 2.1
+Lexp Parser - Phase 2.1
 =======================
 Author: Hoang Mai Han Dang, Yazi Zhang
 
@@ -11,7 +11,7 @@ Build Instructions:
 -------------------
 To compile the program, use the following command in the terminal:
 
-    g++ -o LexpParser LexpParser.cpp
+    g++ -std=c++11 LexpScanner.cpp LexpParser.cpp -o LexpParser
 
 This will generate an executable named "LexpParser".
 
@@ -28,6 +28,10 @@ If you have an input file `sample.txt`, run:
     ./LexpParser sample.txt output.txt
 
 This will process the input file, generate tokens, build an AST, and write the output to output.txt.
+
+The output file will include:
+    - The list of tokens in order, one per line, reporting the token type and value.
+    - The generated AST (preorder traverse)
 
 Error Handling:
 ---------------
