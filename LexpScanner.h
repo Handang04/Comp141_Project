@@ -9,6 +9,8 @@ struct Token {
     std::string value;
 };
 
+bool isOnlyWhiteSpace(const std::string& line);
+
 std::vector<Token> scanLine(const std::string& line);
 
 #endif 

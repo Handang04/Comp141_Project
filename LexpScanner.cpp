@@ -78,7 +78,7 @@ vector<Token> scanLine(const string& line)
         when nothing matches, the length of match is 0
         ensure index always move forward
         */
-        index += tokenLength;
+       index += match.length() > 0 ? match.length() : 1;
     }
 
     return tokens;
