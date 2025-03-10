@@ -10,66 +10,85 @@ Description: This program implements a lexical scanner for Lexp,
 #include <vector>
 #include <string>
 #include <fstream>
+#include <cctype>
+#include <algorithm>
+#include <memory>
 
 using namespace std;
 
 const regex IDENTIFIER_REGEX("^[a-zA-Z][a-zA-Z0-9]*");
 const regex NUMBER_REGEX("^[0-9]+");
 const regex SYMBOL_REGEX("^[+\\-*/()]");
+const regex WHITESPACE_REGEX(R"(\s+)");
 
-vector<string> scanLine(const string& line)
+struct Token {
+    string type;
+    string value;
+};
+
+bool isOnlyWhiteSpace(const string& line)
 {
-    vector<string> result;
+    return all_of(line.begin(), line.end(), [](char c) { return isspace(c); });
+}
+
+vector<Token> scanLine(const string& line)
+{
+    vector<Token> tokens;
     size_t index = 0;
 
     while (index < line.length())
     {
         char currChar = line[index];
-        if (isspace(currChar))
+        string remaining = line.substr(index);
+        string token;
+        smatch match;
+        size_t tokenLength = 0;
+
+        if (regex_search(remaining, match, WHITESPACE_REGEX) && match.position() == 0)
         {
-            index++;
+            tokenLength = match.length();
+            index += match.length();
             continue;
         }
-
-        string remaining = line.substr(index);
-        smatch match;
-
-        if (regex_search(remaining, match, IDENTIFIER_REGEX))
+        else if (regex_search(remaining, match, IDENTIFIER_REGEX))
         {
-            string token = match.str();
-            result.push_back(token + ": IDENTIFIER");
-            index += token.length();
+            tokenLength = match.length();
+            token = match.str();
+            tokens.push_back({"IDENTIFIER", token});
         }
         else if (regex_search(remaining, match, NUMBER_REGEX))
         {
-            string token = match.str();
-            result.push_back(token + ": NUMBER");
-            index += token.length();
+            tokenLength = match.length();
+            token = match.str();
+            tokens.push_back({"NUMBER", token});
         }
         else if (regex_search(remaining, match, SYMBOL_REGEX))
         {
-            string token = match.str();
-            result.push_back(token + ": SYMBOL");
-            index += token.length();
+            tokenLength = match.length();
+            token = match.str();
+            tokens.push_back({"SYMBOL", token});
         }
         else
         {
-            result.push_back("ERROR READING: \"" + string(1, currChar) + "\"");
-            index++;
+            tokenLength = 1;
+            tokens.push_back({"ERROR READING", string(1, currChar)});
+            break;
         }
+        /*
+        when nothing matches, the length of match is 0
+        ensure index always move forward
+        */
+        index += tokenLength;
     }
 
-    return result;
+    return tokens;
 }
 
+/*
 int main(int argc, char *argv[])
 {
     if (argc < 3)
     {
-        /*
-        Ensure that the program does not crash
-        when required agruments are missing
-        */
         cout << "Type: ./LexpScanner <input_file> <output_file>" << endl;
         return 1;
     }
@@ -89,12 +108,24 @@ int main(int argc, char *argv[])
 
     while (getline(inputFile, line))
     {
-        outputFile << "Line: " << line << endl;
-        vector<string> tokens = scanLine(line);
-
-        for (const string &token : tokens)
+        if (isOnlyWhiteSpace(line))
         {
-            outputFile << token << endl;
+            continue;
+        }
+
+        outputFile << "Line: " << line << endl;
+        vector<Token> tokens = scanLine(line);
+
+        for (const Token &token : tokens)
+        {
+            if (token.type == "ERROR READING")
+            {
+                outputFile << "ERROR READING: \"" + token.value + "\""  << endl;
+            }
+            else
+            {
+                outputFile << token.value << ": " << token.type << endl;
+            }
         }
 
         outputFile << endl;
@@ -105,3 +136,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+*/
