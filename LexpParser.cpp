@@ -135,67 +135,74 @@ piece ::= element { * element }
 element ::= ( expression ) | NUMBER | IDENTIFIER
 */
 
-shared_ptr<ASTnode> parseExpression(TokenStream& tokens);
-shared_ptr<ASTnode> parseTerm(TokenStream& tokens);
-shared_ptr<ASTnode> parseFactor(TokenStream& tokens);
-shared_ptr<ASTnode> parsePiece(TokenStream& tokens);
-shared_ptr<ASTnode> parseElement(TokenStream& tokens);
+shared_ptr<ASTnode> parseExpression(TokenStream& tokens, ofstream& outputFile);
+shared_ptr<ASTnode> parseTerm(TokenStream& tokens, ofstream& outputFile);
+shared_ptr<ASTnode> parseFactor(TokenStream& tokens, ofstream& outputFile);
+shared_ptr<ASTnode> parsePiece(TokenStream& tokens, ofstream& outputFile);
+shared_ptr<ASTnode> parseElement(TokenStream& tokens, ofstream& outputFile);
 
 // FIX: MAKE A BETTER VALUE AND TYPE FOR AST NODE
-shared_ptr<ASTnode> parseExpression(TokenStream& tokens) {
-    auto node = parseTerm(tokens);
+shared_ptr<ASTnode> parseExpression(TokenStream& tokens, ofstream& outputFile) {
+    auto node = parseTerm(tokens, outputFile);
     while (tokens.peek().value == "+") {
         tokens.get();
-        node = make_shared<ASTnode>("+", "SYMBOL", node, parseTerm(tokens));
+        node = make_shared<ASTnode>("+", "SYMBOL", node, parseTerm(tokens, outputFile));
     }
     return node;
 }
 
-shared_ptr<ASTnode> parseTerm(TokenStream& tokens) {
-    auto node = parseFactor(tokens);
+shared_ptr<ASTnode> parseTerm(TokenStream& tokens, ofstream& outputFile) {
+    auto node = parseFactor(tokens, outputFile);
     while (tokens.peek().value == "-") {
         tokens.get();
-        node = make_shared<ASTnode>("-",  "SYMBOL", node, parseFactor(tokens));
+        node = make_shared<ASTnode>("-", "SYMBOL", node, parseFactor(tokens, outputFile));
     }
     return node;
 }
 
-shared_ptr<ASTnode> parseFactor(TokenStream& tokens) {
-    auto node = parsePiece(tokens);
+shared_ptr<ASTnode> parseFactor(TokenStream& tokens, ofstream& outputFile) {
+    auto node = parsePiece(tokens, outputFile);
     while (tokens.peek().value == "/") {
         tokens.get();
-        node = make_shared<ASTnode>("/",  "SYMBOL", node, parsePiece(tokens));
+        node = make_shared<ASTnode>("/", "SYMBOL", node, parsePiece(tokens, outputFile));
     }
     return node;
 }
-shared_ptr<ASTnode> parsePiece(TokenStream& tokens) {
-    auto node = parseElement(tokens);
+
+shared_ptr<ASTnode> parsePiece(TokenStream& tokens, ofstream& outputFile) {
+    auto node = parseElement(tokens, outputFile);
     while (tokens.peek().value == "*") {
         tokens.get();
-        node = make_shared<ASTnode>("*",  "SYMBOL", node, parseElement(tokens));
+        node = make_shared<ASTnode>("*", "SYMBOL", node, parseElement(tokens, outputFile));
     }
     return node;
 }
-shared_ptr<ASTnode> parseElement(TokenStream& tokens) {
+
+shared_ptr<ASTnode> parseElement(TokenStream& tokens, ofstream& outputFile) {
     Token token = tokens.get();
     if (token.type == "NUMBER" || token.type == "IDENTIFIER") {
-        return make_shared<ASTnode> (token.value, token.type);
+        return make_shared<ASTnode>(token.value, token.type);
     } else if (token.value == "(") {
-        auto node = parseExpression(tokens);
-        tokens.get();
+        auto node = parseExpression(tokens, outputFile);
+        if (tokens.get().value != ")") {
+            outputFile << "ERROR: Expected closing parenthesis but only found: " << token.value << endl;
+            outputFile.close();
+            exit(1);
+        }
         return node;
     }
 
-    return nullptr;
+    outputFile << "ERROR: Unexpected token: " << token.value << endl;
+    outputFile.close();
+    exit(1);
 }
 
 void printAST(const shared_ptr<ASTnode>& node, ofstream& outputFile, int depth = 0) {
     if (!node) return;
-    outputFile << string (depth * 2, ' ') << node -> value << " : " << node -> type << endl;
+    outputFile << string(depth * 2, ' ') << node->value << " : " << node->type << endl;
     printAST(node->left, outputFile, depth + 1);
     printAST(node->right, outputFile, depth + 1);
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -229,7 +236,7 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        outputFile << "Line: " << line << endl;
+        outputFile << "Tokens: " << endl;
         vector<Token> tokens = scanLine(line);
 
         for (const Token &token : tokens)
@@ -247,9 +254,10 @@ int main(int argc, char *argv[])
         outputFile << endl;
 
         TokenStream ts(tokens);
-        shared_ptr<ASTnode> root = parseExpression(ts);
+        shared_ptr<ASTnode> root = parseExpression(ts, outputFile);
         outputFile << "AST:" << endl;
         printAST(root, outputFile);
+        outputFile << endl;
     }
 
     inputFile.close();
