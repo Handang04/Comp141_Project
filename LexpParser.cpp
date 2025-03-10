@@ -1,10 +1,11 @@
 /*
-Name: Hoang Mai Han Dang, Yazi Zhang
-Phase 2.1: Parser for Lexp
-Description: This program implements a parser module for Lexp.
-            A parser processes the stream
-            tokens produced by the scanner according to the language grammar.
-            The result will be an abstract syntax tree (AST) representing the parsed code.
+Name: Hoang Mai Han Dang, Yazi Zhang  
+Phase 2.1: Parser for Lexp  
+Description: This program implements a parser module for Lexp.  
+             The parser processes a stream of tokens produced by the scanner  
+             according to the language grammar.  
+             The output of the parser is an Abstract Syntax Tree (AST) (a preorder traverse)
+             that represents the parsed code structure.  
 */
 
 #include <iostream>
@@ -141,7 +142,6 @@ shared_ptr<ASTnode> parseFactor(TokenStream& tokens, ofstream& outputFile);
 shared_ptr<ASTnode> parsePiece(TokenStream& tokens, ofstream& outputFile);
 shared_ptr<ASTnode> parseElement(TokenStream& tokens, ofstream& outputFile);
 
-// FIX: MAKE A BETTER VALUE AND TYPE FOR AST NODE
 shared_ptr<ASTnode> parseExpression(TokenStream& tokens, ofstream& outputFile) {
     auto node = parseTerm(tokens, outputFile);
     while (tokens.peek().value == "+") {
