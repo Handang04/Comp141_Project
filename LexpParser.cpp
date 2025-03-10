@@ -8,6 +8,7 @@ Description: This program implements a parser module for Lexp.
              that represents the parsed code structure.  
 */
 
+#include "LexpScanner.h"
 #include <iostream>
 #include <regex>
 #include <vector>
@@ -20,16 +21,6 @@ Description: This program implements a parser module for Lexp.
 
 using namespace std;
 
-const regex IDENTIFIER_REGEX("^[a-zA-Z][a-zA-Z0-9]*");
-const regex NUMBER_REGEX("^[0-9]+");
-const regex SYMBOL_REGEX("^[+\\-*/()]");
-const regex WHITESPACE_REGEX(R"(\s+)");
-
-struct Token {
-    string type;
-    string value;
-};
-
 struct ASTnode {
     string value;
     string type;
@@ -39,64 +30,6 @@ struct ASTnode {
     ASTnode(string val, string t, shared_ptr<ASTnode> l = nullptr, shared_ptr<ASTnode> r = nullptr)
         : value(val), type(t) ,left(l), right(r) {}
 };
-
-bool isOnlyWhiteSpace(const string& line)
-{
-    return all_of(line.begin(), line.end(), [](char c) { return isspace(c); });
-}
-
-vector<Token> scanLine(const string& line)
-{
-    vector<Token> tokens;
-    size_t index = 0;
-
-    while (index < line.length())
-    {
-        char currChar = line[index];
-        string remaining = line.substr(index);
-        string token;
-        smatch match;
-        size_t tokenLength = 0;
-
-        if (regex_search(remaining, match, WHITESPACE_REGEX) && match.position() == 0)
-        {
-            tokenLength = match.length();
-            index += match.length();
-            continue;
-        }
-        else if (regex_search(remaining, match, IDENTIFIER_REGEX))
-        {
-            tokenLength = match.length();
-            token = match.str();
-            tokens.push_back({"IDENTIFIER", token});
-        }
-        else if (regex_search(remaining, match, NUMBER_REGEX))
-        {
-            tokenLength = match.length();
-            token = match.str();
-            tokens.push_back({"NUMBER", token});
-        }
-        else if (regex_search(remaining, match, SYMBOL_REGEX))
-        {
-            tokenLength = match.length();
-            token = match.str();
-            tokens.push_back({"SYMBOL", token});
-        }
-        else
-        {
-            tokenLength = 1;
-            tokens.push_back({"ERROR READING", string(1, currChar)});
-            break;
-        }
-        /*
-        when nothing matches, the length of match is 0
-        ensure index always move forward
-        */
-        index += tokenLength;
-    }
-
-    return tokens;
-}
 
 class TokenStream {
     public:
@@ -185,14 +118,14 @@ shared_ptr<ASTnode> parseElement(TokenStream& tokens, ofstream& outputFile) {
     } else if (token.value == "(") {
         auto node = parseExpression(tokens, outputFile);
         if (tokens.get().value != ")") {
-            outputFile << "ERROR: Expected closing parenthesis but only found: " << token.value << endl;
+            outputFile << "ERROR IN PARSER: Expected closing parenthesis but only found: " << token.value << endl;
             outputFile.close();
             exit(1);
         }
         return node;
     }
 
-    outputFile << "ERROR: Unexpected token: " << token.value << endl;
+    outputFile << "ERROR IN PARSER: Unexpected token: " << token.value << endl;
     outputFile.close();
     exit(1);
 }
@@ -231,11 +164,6 @@ int main(int argc, char *argv[])
 
     while (getline(inputFile, line))
     {
-        if (isOnlyWhiteSpace(line))
-        {
-            continue;
-        }
-
         outputFile << "Tokens: " << endl;
         vector<Token> tokens = scanLine(line);
 
@@ -255,6 +183,7 @@ int main(int argc, char *argv[])
 
         TokenStream ts(tokens);
         shared_ptr<ASTnode> root = parseExpression(ts, outputFile);
+
         outputFile << "AST:" << endl;
         printAST(root, outputFile);
         outputFile << endl;
