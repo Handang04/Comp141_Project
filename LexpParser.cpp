@@ -164,6 +164,11 @@ int main(int argc, char *argv[])
 
     while (getline(inputFile, line))
     {
+        if (isOnlyWhiteSpace(line))
+        {
+            continue;
+        }
+        
         outputFile << "Tokens: " << endl;
         vector<Token> tokens = scanLine(line);
 
