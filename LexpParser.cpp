@@ -188,6 +188,13 @@ int main(int argc, char *argv[])
 
         TokenStream ts(tokens);
         shared_ptr<ASTnode> root = parseExpression(ts, outputFile);
+        Token nextToken = ts.peek();
+        if (nextToken.type != "End of File") {
+            outputFile << "ERROR IN PARSER: Unexpected token after expression: " << nextToken.value << endl;
+            outputFile << endl;
+            outputFile.close();
+            exit(1);
+        }
 
         outputFile << "AST:" << endl;
         printAST(root, outputFile);
