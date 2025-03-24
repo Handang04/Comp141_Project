@@ -80,14 +80,15 @@ vector<Token> scanLine(const string& line)
     return tokens;
 };
 
+/*
 int main(int argc, char *argv[])
 {
     if (argc < 3)
     {
-        /*
+        
         Ensure that the program does not crash
         when required agruments are missing
-        */
+        
         cout << "Type: ./LimpScanner <input_file> <output_file>" << endl;
         return 1;
     }
@@ -135,3 +136,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+*/
