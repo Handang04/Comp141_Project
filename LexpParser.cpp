@@ -137,14 +137,15 @@ void printAST(const shared_ptr<ASTnode>& node, ofstream& outputFile, int depth =
     printAST(node->right, outputFile, depth + 1);
 }
 
+/*
 int main(int argc, char *argv[])
 {
     if (argc < 3)
     {
-        /*
-        Ensure that the program does not crash
-        when required agruments are missing
-        */
+        
+        // Ensure that the program does not crash
+        // when required agruments are missing
+        
         cout << "Type: ./LexpParser <input_file> <output_file>" << endl;
         return 1;
     }
@@ -206,3 +207,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+*/
