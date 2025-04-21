@@ -101,6 +101,9 @@ int evaluateAST(shared_ptr<ASTnode> root) {
                     result = num2 + num1;  // Note: stack order reverses operands
                 } else if (top3->value == "-") {
                     result = num2 - num1;
+                    if (result < 0) {
+                        result = 0;
+                    }
                 } else if (top3->value == "*") {
                     result = num2 * num1;
                 } else if (top3->value == "/") {
