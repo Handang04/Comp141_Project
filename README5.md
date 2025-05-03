@@ -1,4 +1,4 @@
-Limp Parser - Phase 3.1
+Lexp Interpreter - Phase 3.1
 =======================
 Author: Hoang Mai Han Dang, Yazi Zhang
 

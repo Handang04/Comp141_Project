@@ -1,3 +1,17 @@
+/*
+Name: [Your Name]
+Phase: Interpreter for Limp
+Description: This program implements an evaluator module for the Limp language.
+             The evaluator works with the Abstract Syntax Tree (AST) produced by the parser
+             and executes program statements in a recursive manner.
+             It maintains a memory store implemented as a map that associates variable names with their integer values.
+             The evaluator handles assignments, control flow statements (if-then-else, while loops),
+             and arithmetic expressions (supporting addition, subtraction, multiplication, and division).
+             For subtraction operations, the language ensures non-negative results by returning 0 when
+             the right operand is larger than the left (as negative numbers aren't supported).
+             The final state of the program variables is output after evaluation completes.
+*/
+
 #include "LimpParser.h"
 #include <iostream>
 #include <regex>
@@ -63,7 +77,7 @@ class Evaluator {
                 s.push(left + right);
             }
             else if (node->value == "-") {
-                s.push(left - right);
+                s.push(left > right ? left - right : 0);
             }
             else if (node->value == "*") {
                 s.push(left * right);
