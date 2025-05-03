@@ -1,0 +1,7 @@
+x := 5;
+if (x - 5) + 2 then
+    x := x - 1;
+    y := 3
+else
+    y := 9
+endif
