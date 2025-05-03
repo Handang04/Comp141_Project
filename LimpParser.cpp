@@ -29,6 +29,19 @@ struct ASTnode
     string type;
     shared_ptr<ASTnode> left;
     shared_ptr<ASTnode> right;
+    shared_ptr<ASTnode> clone() const {
+        /*
+        First, create a new ASTnode with the same value and type with the current node, null pointer for left and right
+        If the current node has a left child (not nullptr),
+        it calls clone() on that left child and assigns the result to the new node's left pointer.
+        Similarly, if there's a right child,
+        it calls clone() on that right child and assigns the result to the new node's right pointer.
+        */
+        auto newNode = make_shared<ASTnode>(value, type);
+        if (left) newNode->left = left->clone();
+        if (right) newNode->right = right->clone();
+        return newNode;
+    }
 
     ASTnode(string val, string t, shared_ptr<ASTnode> l = nullptr, shared_ptr<ASTnode> r = nullptr)
         : value(val), type(t), left(l), right(r) {}
@@ -393,14 +406,15 @@ void printAST(const shared_ptr<ASTnode> &node, ofstream &outputFile, int depth =
     }
 }
 
+/*
 int main(int argc, char *argv[])
 {
     if (argc < 3)
     {
-        /*
+        
         Ensure that the program does not crash
         when required agruments are missing
-        */
+        
         cout << "Type: ./LimpParser <input_file> <output_file>" << endl;
         return 1;
     }
@@ -465,3 +479,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+*/

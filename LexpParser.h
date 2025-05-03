@@ -4,6 +4,7 @@
 #include "LexpScanner.h"
 #include <string>
 #include <vector>
+#include <memory>
 #include <fstream>
 
 using namespace std;
